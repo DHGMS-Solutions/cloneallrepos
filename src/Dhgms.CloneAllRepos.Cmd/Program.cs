@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dhgms.CloneAllRepos.Cmd
+﻿namespace Dhgms.CloneAllRepos.Cmd
 {
-    class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             // Get settings from command line
             var commandLineArgs = new CommandLineArguments();
