@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SystemInterface.IO;
 using JetBrains.Annotations;
 using Octokit;
 using Octokit.Internal;
@@ -11,12 +13,19 @@ namespace Dhgms.CloneAllRepos.Cmd
 {
     public sealed class Job
     {
+        private readonly IDirectory _directory;
+
+        public Job(IDirectory directory)
+        {
+            this._directory = directory ?? throw new ArgumentNullException(nameof(directory));
+        }
+
         /// <summary>
         /// Executes the job
         /// </summary>
         /// <param name="jobSettings">The settings for the job</param>
-        /// <exception cref="ArgumentNullException">No job settings passed.</exception>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        /// <exception cref="System.ArgumentNullException">No job settings were passed.</exception>
         public async Task ExecuteAsync([NotNull]IJobSettings jobSettings)
         {
             if (jobSettings == null)
@@ -27,6 +36,14 @@ namespace Dhgms.CloneAllRepos.Cmd
             var apiKey = jobSettings.ApiKey;
 
             var gitHubClient = await this.GetGitHubClientWithApiKeyAsync(apiKey);
+
+            var rootDir = jobSettings.RootDir;
+
+            // validate home directory
+            if (!_directory.Exists(rootDir))
+            {
+                throw new DirectoryNotFoundException(rootDir);
+            }
 
             // check user
 

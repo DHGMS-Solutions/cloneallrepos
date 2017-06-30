@@ -1,6 +1,6 @@
 ﻿namespace Dhgms.CloneAllRepos.UnitTests
 {
-    using Cmd;
+    using Dhgms.CloneAllRepos.Cmd;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -26,7 +26,7 @@
                 {
                     "apikey",
                     testApiKey
-                },
+                }
             };
 
             public static IEnumerable<object[]> WhatIfTestData => new List<object[]>
@@ -39,7 +39,7 @@
                 new object[]
                 {
                     "whatif"
-                },
+                }
             };
 
             [Theory]
