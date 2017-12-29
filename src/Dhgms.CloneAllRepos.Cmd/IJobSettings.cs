@@ -1,8 +1,10 @@
-﻿namespace Dhgms.CloneAllRepos.Cmd
+﻿using MediatR;
+
+namespace Dhgms.CloneAllRepos.Cmd
 {
-    public interface IJobSettings
+    public interface IJobSettings : IRequest
     {
-        string ApiKey { get; }
+        string GitHubApiKey { get; }
 
         string RootDir { get; }
 

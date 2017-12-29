@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SystemInterface.IO;
 using JetBrains.Annotations;
+using MediatR;
 using Octokit;
 using Octokit.Internal;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
-    public sealed class Job
+    public sealed class Job : IRequestHandler<IJobSettings>
     {
         private readonly IDirectory _directory;
 
@@ -20,22 +22,14 @@ namespace Dhgms.CloneAllRepos.Cmd
             this._directory = directory ?? throw new ArgumentNullException(nameof(directory));
         }
 
-        /// <summary>
-        /// Executes the job
-        /// </summary>
-        /// <param name="jobSettings">The settings for the job</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <exception cref="System.ArgumentNullException">No job settings were passed.</exception>
-        public async Task ExecuteAsync([NotNull]IJobSettings jobSettings)
+        public async Task Handle([NotNull]IJobSettings jobSettings, CancellationToken cancellationToken)
         {
             if (jobSettings == null)
             {
                 throw new ArgumentNullException(nameof(jobSettings));
             }
 
-            var apiKey = jobSettings.ApiKey;
-
-            var gitHubClient = await this.GetGitHubClientWithApiKeyAsync(apiKey);
+            var apiKey = jobSettings.GitHubApiKey;
 
             var rootDir = jobSettings.RootDir;
 
@@ -44,6 +38,8 @@ namespace Dhgms.CloneAllRepos.Cmd
             {
                 throw new DirectoryNotFoundException(rootDir);
             }
+
+            var gitHubClient = await this.GetGitHubClientWithApiKeyAsync(apiKey);
 
             // check user
 
@@ -111,7 +107,7 @@ namespace Dhgms.CloneAllRepos.Cmd
         private GitHubClient GetGitHubClientWithApiKey([NotNull]string apiKey)
         {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            var productInformation = new Octokit.ProductHeaderValue("DHGMS-Gitstronomy", version);
+            var productInformation = new Octokit.ProductHeaderValue("DHGMS.CloneAllRepos", version);
             var credentials = new Credentials(apiKey);
             var credentialStore = new InMemoryCredentialStore(credentials);
             return new Octokit.GitHubClient(productInformation, credentialStore);

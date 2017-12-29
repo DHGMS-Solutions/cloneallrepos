@@ -50,7 +50,7 @@
                 var success = CommandLine.Parser.Default.ParseArguments(args, commandLineArgs);
 
                 Assert.True(success);
-                Assert.Equal(testApiKey, commandLineArgs.ApiKey);
+                Assert.Equal(testApiKey, commandLineArgs.GitHubApiKey);
                 Assert.False(commandLineArgs.WhatIf);
             }
 
@@ -62,7 +62,7 @@
                 var success = CommandLine.Parser.Default.ParseArguments(args, commandLineArgs);
 
                 Assert.True(success);
-                Assert.Null(commandLineArgs.ApiKey);
+                Assert.Null(commandLineArgs.GitHubApiKey);
                 Assert.False(commandLineArgs.WhatIf);
             }
         }
