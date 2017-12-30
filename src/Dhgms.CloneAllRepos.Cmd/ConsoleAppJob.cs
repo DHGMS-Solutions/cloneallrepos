@@ -12,7 +12,8 @@ namespace Dhgms.CloneAllRepos.Cmd
         protected override CloneFromGithubRequestHandler GetActualJob()
         {
             var directory = new DirectoryWrap();
-            return new CloneFromGithubRequestHandler(directory);
+            var pathSystem = new PathWrap();
+            return new CloneFromGithubRequestHandler(directory, pathSystem);
         }
     }
 }

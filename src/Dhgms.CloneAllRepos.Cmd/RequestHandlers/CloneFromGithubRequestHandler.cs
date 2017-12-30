@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SystemInterface.IO;
+using Dhgms.CloneAllRepos.Cmd.Exceptions;
 using Foundatio.Utility;
 using JetBrains.Annotations;
 using MediatR;
@@ -17,11 +18,15 @@ namespace Dhgms.CloneAllRepos.Cmd
 {
     public sealed class CloneFromGithubRequestHandler : IRequestHandler<IJobSettings>
     {
-        private readonly IDirectory _directory;
+        private readonly IDirectory _directorySystem;
+        private readonly IPath _pathSystem;
 
-        public CloneFromGithubRequestHandler(IDirectory directory)
+        public CloneFromGithubRequestHandler(
+            IDirectory directorySystem,
+            IPath pathSystem)
         {
-            this._directory = directory ?? throw new ArgumentNullException(nameof(directory));
+            this._directorySystem = directorySystem ?? throw new ArgumentNullException(nameof(directorySystem));
+            this._pathSystem = pathSystem ?? throw new ArgumentNullException(nameof(pathSystem));
         }
 
         public async Task Handle([NotNull]IJobSettings jobSettings, CancellationToken cancellationToken)
@@ -36,7 +41,7 @@ namespace Dhgms.CloneAllRepos.Cmd
             var rootDir = jobSettings.RootDir;
 
             // validate home directory
-            if (!_directory.Exists(rootDir))
+            if (!this._directorySystem.Exists(rootDir))
             {
                 throw new DirectoryNotFoundException(rootDir);
             }
@@ -44,34 +49,76 @@ namespace Dhgms.CloneAllRepos.Cmd
             var gitHubClient = await this.GetGitHubClientWithApiKeyAsync(apiKey);
 
             // check user
-            await CloneAllRepositoriesForUser(gitHubClient);
+            await CloneAllRepositoriesForUser(rootDir, gitHubClient);
 
             // check all organisations
-            await CloneAllOrganisationsForUser(gitHubClient);
+            await CloneAllOrganisationsForUser(rootDir, gitHubClient);
 
             // check stars
-            await CloneAllStarsForUser(gitHubClient);
+            await CloneAllStarsForUser(rootDir, gitHubClient);
         }
 
-        private async Task CloneAllStarsForUser(GitHubClient gitHubClient)
+        private async Task CloneAllStarsForUser(string rootDir, GitHubClient gitHubClient)
         {
             await FetchListAndLoopIfNotEmptyAsync(
                 gitHubClient.Activity.Starring.GetAllForCurrent,
                 OnNoStarsForUser,
-                CloneStarForUser);
+                repository => CloneStarForUser(rootDir, repository),
+                () => EnsureStarFolderExists(rootDir));
         }
 
-        private Task CloneStarForUser(Repository arg)
+        private async Task EnsureStarFolderExists(string rootDir)
         {
+            var starsFolder = this._pathSystem.Combine(rootDir, "stars");
+            this.EnsureDirectoryExists(starsFolder);
         }
 
+        private void EnsureDirectoryExists(string path)
+        {
+            if (this._directorySystem.Exists(path))
+            {
+                return;
+            }
+
+            this._directorySystem.CreateDirectory(path);
+        }
+
+        private async Task CloneStarForUser(string rootDir, Repository repository)
+        {
+            // check the owner folder exists
+            // already done stars pre loop
+            var ownerName = repository.Owner.Name;
+            var targetDirectory = this._pathSystem.Combine(rootDir, "stars", ownerName);
+            this.EnsureDirectoryExists(targetDirectory);
+
+            // check if the repo folder exists
+            var repositoryName = repository.Name;
+            targetDirectory = this._pathSystem.Combine(targetDirectory, repositoryName);
+
+            if (this._directorySystem.Exists(targetDirectory))
+            {
+                if (LibGit2Sharp.Repository.IsValid(targetDirectory))
+                {
+                    return;
+                }
+
+                var filesInDirectory = this._directorySystem.EnumerateFiles(targetDirectory).Any();
+
+                if (filesInDirectory)
+                {
+                    throw new TargetDirectoryNotEmptyException(targetDirectory);
+                }
+            }
+
+            LibGit2Sharp.Repository.Clone(repository.CloneUrl, targetDirectory);
+        }
 
         private async Task OnNoStarsForUser()
         {
             this.GetLogger().LogInformation("No stars for user.");
         }
 
-        private async Task CloneAllOrganisationsForUser(GitHubClient gitHubClient)
+        private async Task CloneAllOrganisationsForUser(string rootDir, GitHubClient gitHubClient)
         {
             await FetchListAndLoopIfNotEmptyAsync(
                 gitHubClient.Organization.GetAllForCurrent,
@@ -79,18 +126,25 @@ namespace Dhgms.CloneAllRepos.Cmd
                 organization => this.DoOrganisationAsync(organization, gitHubClient));
         }
 
-        private async Task CloneAllRepositoriesForUser(GitHubClient gitHubClient)
+        private async Task CloneAllRepositoriesForUser(string rootDir, GitHubClient gitHubClient)
         {
             await FetchListAndLoopIfNotEmptyAsync(
                 gitHubClient.Repository.GetAllForCurrent,
                 async () => { },
-                repository => { });
+                CloneRepositoryForUser);
+        }
+
+        private async Task CloneRepositoryForUser(Repository arg)
+        {
+            throw new NotImplementedException();
         }
 
         private static async Task FetchListAndLoopIfNotEmptyAsync<TItem>(
             [NotNull]Func<Task<IReadOnlyList<TItem>>> collectionProducerTask,
-            Func<Task> emptyListAction,
-            [NotNull]Func<TItem, Task> itemConsumerTask)
+            [NotNull]Func<Task> emptyListAction,
+            [NotNull]Func<TItem, Task> itemConsumerTask,
+            Func<Task> preLoopTask = null,
+            Func<Task> postLoopTask = null)
         {
             if (collectionProducerTask == null)
             {
@@ -114,9 +168,19 @@ namespace Dhgms.CloneAllRepos.Cmd
                 return;
             }
 
+            if (preLoopTask != null)
+            {
+                await preLoopTask();
+            }
+
             foreach (var item in collection)
             {
                 await itemConsumerTask(item);
+            }
+
+            if (postLoopTask != null)
+            {
+                await postLoopTask();
             }
         }
 

@@ -203,6 +203,7 @@
     <Compile Include="BaseConsoleAppJob.cs" />
     <Compile Include="CommandLineArguments.cs" />
     <Compile Include="ConsoleAppJob.cs" />
+    <Compile Include="Exceptions\TargetDirectoryNotEmptyException.cs" />
     <Compile Include="FuncConsoleAppJob.cs" />
     <Compile Include="RequestHandlers\CloneFromBitBucketRequestHandler.cs" />
     <Compile Include="RequestHandlers\CloneFromTeamFoundationServerRequestHandler.cs" />
