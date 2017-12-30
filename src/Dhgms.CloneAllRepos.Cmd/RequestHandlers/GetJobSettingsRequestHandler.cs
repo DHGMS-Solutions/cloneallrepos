@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Dhgms.CloneAllRepos.Cmd.Requests;
 using MediatR;
 
-namespace Dhgms.CloneAllRepos.Cmd.Errands
+namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 {
     public class GetJobSettingsRequestHandler : IRequestHandler<StringArrayRequest<IJobSettings>, IJobSettings>
     {

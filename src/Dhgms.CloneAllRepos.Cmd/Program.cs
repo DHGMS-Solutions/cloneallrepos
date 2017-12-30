@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using SystemWrapper.IO;
-using Dhgms.CloneAllRepos.Cmd.Errands;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {

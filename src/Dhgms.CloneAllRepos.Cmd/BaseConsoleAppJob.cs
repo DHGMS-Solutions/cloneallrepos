@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Dhgms.CloneAllRepos.Cmd.Errands;
-using Dhgms.CloneAllRepos.Cmd.Requests;
-using MediatR;
-
-namespace Dhgms.CloneAllRepos.Cmd
+﻿namespace Dhgms.CloneAllRepos.Cmd
 {
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Dhgms.CloneAllRepos.Cmd.RequestHandlers;
+    using Dhgms.CloneAllRepos.Cmd.Requests;
+    using MediatR;
+
+    /// <summary>
+    /// Acts as an entry point for executing a job from a console application
+    /// </summary>
+    /// <typeparam name="TActualJob">The actual job that will be executed</typeparam>
     public abstract class BaseConsoleAppJob<TActualJob> : IRequestHandler<StringArrayRequest<int>, int>
         where TActualJob : IRequestHandler<IJobSettings>
     {
@@ -29,12 +29,10 @@ namespace Dhgms.CloneAllRepos.Cmd
             {
                 jobSettings = await getJobSettingsErrand.Handle(new StringArrayRequest<IJobSettings>(args.Data), cancellationToken);
             }
-#pragma warning disable CC0003 // Your catch should include an Exception
             catch
             {
                 return 1;
             }
-#pragma warning restore CC0003 // Your catch should include an Exception
 
             var jobHandler = this.GetActualJob();
             await jobHandler.Handle(jobSettings, cancellationToken);

@@ -203,9 +203,12 @@
     <Compile Include="BaseConsoleAppJob.cs" />
     <Compile Include="CommandLineArguments.cs" />
     <Compile Include="ConsoleAppJob.cs" />
+    <Compile Include="FuncConsoleAppJob.cs" />
+    <Compile Include="RequestHandlers\CloneFromBitBucketRequestHandler.cs" />
+    <Compile Include="RequestHandlers\CloneFromTeamFoundationServerRequestHandler.cs" />
     <Compile Include="RequestHandlers\GetJobSettingsRequestHandler.cs" />
     <Compile Include="IJobSettings.cs" />
-    <Compile Include="Job.cs" />
+    <Compile Include="RequestHandlers\CloneFromGithubRequestHandler.cs" />
     <Compile Include="RequestHandlers\CloneGitRepositoryRequestHandler.cs" />
     <Compile Include="Models\ICloneGitRepositoryModel.cs" />
     <Compile Include="Program.cs" />

@@ -6,18 +6,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SystemInterface.IO;
+using Foundatio.Utility;
 using JetBrains.Annotations;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Octokit;
 using Octokit.Internal;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
-    public sealed class Job : IRequestHandler<IJobSettings>
+    public sealed class CloneFromGithubRequestHandler : IRequestHandler<IJobSettings>
     {
         private readonly IDirectory _directory;
 
-        public Job(IDirectory directory)
+        public CloneFromGithubRequestHandler(IDirectory directory)
         {
             this._directory = directory ?? throw new ArgumentNullException(nameof(directory));
         }
@@ -42,12 +44,47 @@ namespace Dhgms.CloneAllRepos.Cmd
             var gitHubClient = await this.GetGitHubClientWithApiKeyAsync(apiKey);
 
             // check user
+            await CloneAllRepositoriesForUser(gitHubClient);
 
-            // check organizations of user
+            // check all organisations
+            await CloneAllOrganisationsForUser(gitHubClient);
+
+            // check stars
+            await CloneAllStarsForUser(gitHubClient);
+        }
+
+        private async Task CloneAllStarsForUser(GitHubClient gitHubClient)
+        {
+            await FetchListAndLoopIfNotEmptyAsync(
+                gitHubClient.Activity.Starring.GetAllForCurrent,
+                OnNoStarsForUser,
+                CloneStarForUser);
+        }
+
+        private Task CloneStarForUser(Repository arg)
+        {
+        }
+
+
+        private async Task OnNoStarsForUser()
+        {
+            this.GetLogger().LogInformation("No stars for user.");
+        }
+
+        private async Task CloneAllOrganisationsForUser(GitHubClient gitHubClient)
+        {
             await FetchListAndLoopIfNotEmptyAsync(
                 gitHubClient.Organization.GetAllForCurrent,
-                async () =>  { },
+                async () => { },
                 organization => this.DoOrganisationAsync(organization, gitHubClient));
+        }
+
+        private async Task CloneAllRepositoriesForUser(GitHubClient gitHubClient)
+        {
+            await FetchListAndLoopIfNotEmptyAsync(
+                gitHubClient.Repository.GetAllForCurrent,
+                async () => { },
+                repository => { });
         }
 
         private static async Task FetchListAndLoopIfNotEmptyAsync<TItem>(
