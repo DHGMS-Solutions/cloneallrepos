@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using SystemInterface.IO;
-using Dhgms.CloneAllRepos.Cmd.Exceptions;
-using Foundatio.Utility;
-using JetBrains.Annotations;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using Octokit;
-using Octokit.Internal;
-
-namespace Dhgms.CloneAllRepos.Cmd
+﻿namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Dhgms.CloneAllRepos.Cmd.Exceptions;
+    using Foundatio.Utility;
+    using JetBrains.Annotations;
+    using MediatR;
+    using Microsoft.Extensions.Logging;
+    using Octokit;
+    using Octokit.Internal;
+    using SystemInterface.IO;
+
     public sealed class CloneFromGithubRequestHandler : IRequestHandler<IJobSettings>
     {
         private readonly IDirectory _directorySystem;
@@ -223,7 +222,7 @@ namespace Dhgms.CloneAllRepos.Cmd
 
         }
 
-        internal async Task<GitHubClient> GetGitHubClientWithApiKeyAsync([NotNull]string apiKey)
+        private async Task<GitHubClient> GetGitHubClientWithApiKeyAsync([NotNull]string apiKey)
         {
             return await TaskEx.FromResult(this.GetGitHubClientWithApiKey(apiKey));
             //{

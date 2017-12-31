@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CommandLine;
-
-namespace Dhgms.CloneAllRepos.Cmd
+﻿namespace Dhgms.CloneAllRepos.Cmd
 {
+    using CommandLine;
+
     public sealed class CommandLineArguments : IJobSettings
     {
         [Option('g', "githubApiKey", Required = true, HelpText = "The Github API Key to be used.")]

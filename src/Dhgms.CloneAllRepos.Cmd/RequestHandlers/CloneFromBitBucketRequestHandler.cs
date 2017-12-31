@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
+﻿namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 {
-    class CloneFromBitBucketRequestHandler
+    public sealed class CloneFromBitBucketRequestHandler
     {
     }
 }

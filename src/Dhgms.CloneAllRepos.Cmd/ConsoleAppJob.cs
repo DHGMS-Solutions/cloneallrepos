@@ -1,12 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using SystemWrapper.IO;
-using Dhgms.CloneAllRepos.Cmd.Requests;
-using MediatR;
+﻿using Dhgms.CloneAllRepos.Cmd.RequestHandlers;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
+    using SystemWrapper.IO;
+
     public sealed class ConsoleAppJob : BaseConsoleAppJob<CloneFromGithubRequestHandler>
     {
         protected override CloneFromGithubRequestHandler GetActualJob()
