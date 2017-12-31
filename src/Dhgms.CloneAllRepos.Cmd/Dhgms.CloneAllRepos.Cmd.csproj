@@ -37,9 +37,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
-      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="CommandLine, Version=2.0.275.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.2.1.1-beta\lib\net45\CommandLine.dll</HintPath>
     </Reference>
     <Reference Include="Foundatio, Version=6.0.1586.0, Culture=neutral, PublicKeyToken=fc181f0a46f65747, processorArchitecture=MSIL">
       <HintPath>..\packages\Foundatio.6.0.1586\lib\netstandard2.0\Foundatio.dll</HintPath>
@@ -165,6 +164,9 @@
     <Reference Include="System.Reactive.Windows.Threading, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reactive.Windows.Threading.3.1.0\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
     </Reference>
+    <Reference Include="System.Reflection.TypeExtensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reflection.TypeExtensions.4.1.0-rc2-24027\lib\net46\System.Reflection.TypeExtensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.0.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
       <Private>True</Private>
@@ -201,7 +203,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseConsoleAppJob.cs" />
-    <Compile Include="CommandLineArguments.cs" />
+    <Compile Include="BaseVerbBasedConsoleAppJob.cs" />
+    <Compile Include="CommandLineVerbs\BaseCommandLineVerb.cs" />
+    <Compile Include="CommandLineVerbs\BitBucketCommandLineVerb.cs" />
+    <Compile Include="CommandLineVerbs\GitHubCommandLineVerb.cs" />
+    <Compile Include="CommandLineVerbs\TeamFoundationServerCommandLineVerb.cs" />
     <Compile Include="ConsoleAppJob.cs" />
     <Compile Include="Exceptions\TargetDirectoryNotEmptyException.cs" />
     <Compile Include="FuncConsoleAppJob.cs" />
@@ -217,6 +223,7 @@
     <Compile Include="Requests\CloneGitRepositoryRequest.cs" />
     <Compile Include="Requests\DataRequest.cs" />
     <Compile Include="Requests\StringArrayRequest.cs" />
+    <Compile Include="Settings\ICloneGitHubJobSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

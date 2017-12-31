@@ -1,4 +1,7 @@
-﻿namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
+﻿using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
+using Dhgms.CloneAllRepos.Cmd.Settings;
+
+namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 {
     using System;
     using System.Collections.Generic;
@@ -15,7 +18,7 @@
     using Octokit.Internal;
     using SystemInterface.IO;
 
-    public sealed class CloneFromGithubRequestHandler : IRequestHandler<IJobSettings>
+    public sealed class CloneFromGithubRequestHandler : IRequestHandler<ICloneGitHubJobSettings>
     {
         private readonly IDirectory _directorySystem;
         private readonly IPath _pathSystem;
@@ -28,14 +31,14 @@
             this._pathSystem = pathSystem ?? throw new ArgumentNullException(nameof(pathSystem));
         }
 
-        public async Task Handle([NotNull]IJobSettings jobSettings, CancellationToken cancellationToken)
+        public async Task Handle([NotNull]ICloneGitHubJobSettings jobSettings, CancellationToken cancellationToken)
         {
             if (jobSettings == null)
             {
                 throw new ArgumentNullException(nameof(jobSettings));
             }
 
-            var apiKey = jobSettings.GitHubApiKey;
+            var apiKey = jobSettings.ApiKey;
 
             var rootDir = jobSettings.RootDir;
 

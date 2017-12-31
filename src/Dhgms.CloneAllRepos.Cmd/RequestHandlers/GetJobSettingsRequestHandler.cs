@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandLine;
+using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
 using Dhgms.CloneAllRepos.Cmd.Requests;
 using MediatR;
 
@@ -16,6 +18,13 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
         private static IJobSettings GetJobSettings(StringArrayRequest<IJobSettings> message)
         {
             var commandLineArgs = new CommandLineArguments();
+
+            return Parser.Default.ParseArguments<BitBucketCommandLineVerb, GitHubCommandLineVerb, TeamFoundationServerCommandLineVerb>(args)
+                .MapResult(
+                    (BitBucketCommandLineVerb opts) => RunAddAndReturnExitCode(opts),
+                    (GitHubCommandLineVerb opts) => RunCommitAndReturnExitCode(opts),
+                    (TeamFoundationServerCommandLineVerb opts) => RunCloneAndReturnExitCode(opts),
+                    errs => 1);
 
             if (!CommandLine.Parser.Default.ParseArgumentsStrict(message.Data, commandLineArgs))
             {

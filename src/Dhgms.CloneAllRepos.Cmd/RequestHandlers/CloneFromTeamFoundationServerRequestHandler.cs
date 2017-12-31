@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 {
-    class CloneFromTeamFoundationServerRequestHandler
+    public sealed class CloneFromTeamFoundationServerRequestHandler
     {
     }
 }

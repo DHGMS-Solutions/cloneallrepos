@@ -1,4 +1,6 @@
-﻿namespace Dhgms.CloneAllRepos.UnitTests
+﻿using CommandLine;
+
+namespace Dhgms.CloneAllRepos.UnitTests
 {
     using Dhgms.CloneAllRepos.Cmd;
     using System;
