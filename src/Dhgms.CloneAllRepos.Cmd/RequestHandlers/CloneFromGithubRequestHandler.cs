@@ -60,10 +60,16 @@ namespace Dhgms.CloneAllRepos.Cmd
 
         private async Task CloneAllStarsForUser(string rootDir, GitHubClient gitHubClient)
         {
+            var currentUser = await gitHubClient.User.Current();
+            var orgs = await gitHubClient.Organization.GetAllForCurrent();
+
+            var orgsAndUserToSkipStarsOn = orgs.Select(o => o.Name).ToList();
+            orgsAndUserToSkipStarsOn.Add(currentUser.Name);
+
             await FetchListAndLoopIfNotEmptyAsync(
                 gitHubClient.Activity.Starring.GetAllForCurrent,
                 OnNoStarsForUser,
-                repository => CloneStarForUser(rootDir, repository),
+                repository => CloneStarForUser(rootDir, repository, orgsAndUserToSkipStarsOn),
                 () => EnsureStarFolderExists(rootDir));
         }
 
@@ -81,36 +87,6 @@ namespace Dhgms.CloneAllRepos.Cmd
             }
 
             this._directorySystem.CreateDirectory(path);
-        }
-
-        private async Task CloneStarForUser(string rootDir, Repository repository)
-        {
-            // check the owner folder exists
-            // already done stars pre loop
-            var ownerName = repository.Owner.Name;
-            var targetDirectory = this._pathSystem.Combine(rootDir, "stars", ownerName);
-            this.EnsureDirectoryExists(targetDirectory);
-
-            // check if the repo folder exists
-            var repositoryName = repository.Name;
-            targetDirectory = this._pathSystem.Combine(targetDirectory, repositoryName);
-
-            if (this._directorySystem.Exists(targetDirectory))
-            {
-                if (LibGit2Sharp.Repository.IsValid(targetDirectory))
-                {
-                    return;
-                }
-
-                var filesInDirectory = this._directorySystem.EnumerateFiles(targetDirectory).Any();
-
-                if (filesInDirectory)
-                {
-                    throw new TargetDirectoryNotEmptyException(targetDirectory);
-                }
-            }
-
-            LibGit2Sharp.Repository.Clone(repository.CloneUrl, targetDirectory);
         }
 
         private async Task OnNoStarsForUser()
@@ -131,17 +107,67 @@ namespace Dhgms.CloneAllRepos.Cmd
             await FetchListAndLoopIfNotEmptyAsync(
                 gitHubClient.Repository.GetAllForCurrent,
                 async () => { },
-                CloneRepositoryForUser);
+                repository => CloneRepositoryForUser(rootDir, repository));
         }
 
-        private async Task CloneRepositoryForUser(Repository arg)
+        private async Task CloneStarForUser(
+            string rootDir,
+            Repository repository,
+            IEnumerable<string> organisationsAndUsersToSkipStarsOn)
         {
-            throw new NotImplementedException();
+            // check the owner folder exists
+            // already done stars pre loop
+            var ownerName = repository.Owner.Name;
+
+            if (organisationsAndUsersToSkipStarsOn.Any(skip => skip.Equals(ownerName, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            var targetDirectory = this._pathSystem.Combine(rootDir, "stars", ownerName);
+            this.EnsureDirectoryExists(targetDirectory);
+
+            // check if the repo folder exists
+            var repositoryName = repository.Name;
+            targetDirectory = this._pathSystem.Combine(targetDirectory, repositoryName);
+
+            await CloneRepository(repository, targetDirectory);
+        }
+
+        private async Task CloneRepositoryForUser(string rootDir, Repository repository)
+        {
+            // check if the repo folder exists
+            // already done organisation pre-loop
+            var ownerName = repository.Owner.Name;
+            var repositoryName = repository.Name;
+            var targetDirectory = this._pathSystem.Combine(rootDir, ownerName, repositoryName);
+
+            await CloneRepository(repository, targetDirectory);
+        }
+
+        private async Task CloneRepository(Repository repository, string targetDirectory)
+        {
+            if (this._directorySystem.Exists(targetDirectory))
+            {
+                if (LibGit2Sharp.Repository.IsValid(targetDirectory))
+                {
+                    return;
+                }
+
+                var filesInDirectory = this._directorySystem.EnumerateFiles(targetDirectory).Any();
+
+                if (filesInDirectory)
+                {
+                    throw new TargetDirectoryNotEmptyException(targetDirectory);
+                }
+            }
+
+            LibGit2Sharp.Repository.Clone(repository.CloneUrl, targetDirectory);
         }
 
         private static async Task FetchListAndLoopIfNotEmptyAsync<TItem>(
             [NotNull]Func<Task<IReadOnlyList<TItem>>> collectionProducerTask,
-            [NotNull]Func<Task> emptyListAction,
+            Func<Task> emptyListAction,
             [NotNull]Func<TItem, Task> itemConsumerTask,
             Func<Task> preLoopTask = null,
             Func<Task> postLoopTask = null)
