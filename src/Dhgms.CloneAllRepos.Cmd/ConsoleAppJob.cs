@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
 using Dhgms.CloneAllRepos.Cmd.RequestHandlers;
+using Dhgms.CloneAllRepos.Cmd.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Octokit;
@@ -10,24 +11,35 @@ namespace Dhgms.CloneAllRepos.Cmd
 {
     using SystemWrapper.IO;
 
-    public sealed class ConsoleAppJob : BaseVerbBasedConsoleAppJob<BitBucketCommandLineVerb, CloneFromBitBucketRequestHandler, GitHubCommandLineVerb, CloneFromGithubRequestHandler, TeamFoundationServerCommandLineVerb, CloneFromTeamFoundationServerRequestHandler>
+    public sealed class ConsoleAppJob : BaseVerbBasedConsoleAppJob<
+        BitBucketCommandLineVerb,
+        CloneFromBitBucketRequestHandler,
+        ICloneBitBucketJobSettings,
+        GitHubCommandLineVerb,
+        CloneFromGithubRequestHandler,
+        ICloneGitHubJobSettings,
+        TeamFoundationServerCommandLineVerb,
+        CloneFromTeamFoundationServerRequestHandler,
+        ICloneTeamFoundationServerJobSettings>
     {
-        protected override CloneFromBitBucketRequestHandler GetT1Job(BitBucketCommandLineVerb opts)
+        protected override CloneFromBitBucketRequestHandler GetT1Job(ICloneBitBucketJobSettings opts)
         {
             throw new System.NotImplementedException();
         }
 
-        protected override CloneFromGithubRequestHandler GetT2Job(GitHubCommandLineVerb opts)
+        protected override CloneFromGithubRequestHandler GetT2Job(ICloneGitHubJobSettings opts)
         {
             var directory = new DirectoryWrap();
             var pathSystem = new PathWrap();
             var logFactory = new NullLoggerFactory();
             var logger = logFactory.CreateLogger<CloneFromGithubRequestHandler>();
-            //Func<Repository, string, ILogger, Task> cloneAction = opts.WhatIf ? SimulateCloneAsync : DoActualCloneAsync;
-            return new CloneFromGithubRequestHandler(logger, directory, pathSystem, SimulateCloneAsync);
+            var cloneAction = opts.WhatIf
+                ? (Func<Repository, string, ILogger, Task>)this.SimulateCloneAsync
+                : this.DoActualCloneAsync;
+            return new CloneFromGithubRequestHandler(logger, directory, pathSystem, cloneAction);
         }
 
-        protected override CloneFromTeamFoundationServerRequestHandler GetT3Job(TeamFoundationServerCommandLineVerb opts)
+        protected override CloneFromTeamFoundationServerRequestHandler GetT3Job(ICloneTeamFoundationServerJobSettings opts)
         {
             throw new System.NotImplementedException();
         }

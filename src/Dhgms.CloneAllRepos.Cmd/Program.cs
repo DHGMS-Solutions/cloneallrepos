@@ -1,5 +1,7 @@
 ﻿using System.Linq;
+using System.Threading;
 using SystemWrapper.IO;
+using Nito.AsyncEx.Synchronous;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
@@ -7,6 +9,7 @@ namespace Dhgms.CloneAllRepos.Cmd
     {
         public static int Main(string[] args)
         {
+            // todo : update to dotnetcore and use an async main
             var consoleAppJob = new ConsoleAppJob();
             return consoleAppJob.Handle(args).Result;
         }

@@ -223,7 +223,9 @@
     <Compile Include="Requests\CloneGitRepositoryRequest.cs" />
     <Compile Include="Requests\DataRequest.cs" />
     <Compile Include="Requests\StringArrayRequest.cs" />
+    <Compile Include="Settings\ICloneBitBucketJobSettings.cs" />
     <Compile Include="Settings\ICloneGitHubJobSettings.cs" />
+    <Compile Include="Settings\ICloneTeamFoundationServerJobSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
