@@ -22,6 +22,13 @@ namespace Dhgms.CloneAllRepos.Cmd
         CloneFromTeamFoundationServerRequestHandler,
         ICloneTeamFoundationServerJobSettings>
     {
+        private readonly LoggerFactory _loggerFactory;
+
+        public ConsoleAppJob(LoggerFactory loggerFactory)
+        {
+            this._loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        }
+
         protected override CloneFromBitBucketRequestHandler GetT1Job(ICloneBitBucketJobSettings opts)
         {
             throw new System.NotImplementedException();
