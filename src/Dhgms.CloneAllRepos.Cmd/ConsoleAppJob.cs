@@ -1,5 +1,10 @@
-﻿using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
+﻿using System;
+using System.Threading.Tasks;
+using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
 using Dhgms.CloneAllRepos.Cmd.RequestHandlers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Octokit;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
@@ -16,12 +21,26 @@ namespace Dhgms.CloneAllRepos.Cmd
         {
             var directory = new DirectoryWrap();
             var pathSystem = new PathWrap();
-            return new CloneFromGithubRequestHandler(directory, pathSystem);
+            var logFactory = new NullLoggerFactory();
+            var logger = logFactory.CreateLogger<CloneFromGithubRequestHandler>();
+            //Func<Repository, string, ILogger, Task> cloneAction = opts.WhatIf ? SimulateCloneAsync : DoActualCloneAsync;
+            return new CloneFromGithubRequestHandler(logger, directory, pathSystem, SimulateCloneAsync);
         }
 
         protected override CloneFromTeamFoundationServerRequestHandler GetT3Job(TeamFoundationServerCommandLineVerb opts)
         {
             throw new System.NotImplementedException();
+        }
+
+        private async Task SimulateCloneAsync(Repository repository, string targetDirectory, ILogger logger)
+        {
+            await Task.Run(() => logger.LogInformation($"WHATIF: Would have cloned {repository.Url} to {targetDirectory}"));
+        }
+
+        private async Task DoActualCloneAsync(Repository repository, string targetDirectory, ILogger logger)
+        {
+            logger.LogInformation($"Cloning {repository.Url} to {targetDirectory}");
+            LibGit2Sharp.Repository.Clone(repository.CloneUrl, targetDirectory);
         }
     }
 }

@@ -20,15 +20,21 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 
     public sealed class CloneFromGithubRequestHandler : IRequestHandler<ICloneGitHubJobSettings>
     {
+        private readonly ILogger _logger;
         private readonly IDirectory _directorySystem;
         private readonly IPath _pathSystem;
+        private Func<Repository, string, ILogger, Task> _cloneAction;
 
         public CloneFromGithubRequestHandler(
+            ILogger logger,
             IDirectory directorySystem,
-            IPath pathSystem)
+            IPath pathSystem,
+            Func<Repository, string, ILogger, Task> cloneAction)
         {
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._directorySystem = directorySystem ?? throw new ArgumentNullException(nameof(directorySystem));
             this._pathSystem = pathSystem ?? throw new ArgumentNullException(nameof(pathSystem));
+            this._cloneAction = cloneAction ?? throw new ArgumentNullException(nameof(cloneAction));
         }
 
         public async Task Handle([NotNull]ICloneGitHubJobSettings jobSettings, CancellationToken cancellationToken)
@@ -136,7 +142,9 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
             await CloneRepository(repository, targetDirectory);
         }
 
-        private async Task CloneRepositoryForUser(string rootDir, Repository repository)
+        private async Task CloneRepositoryForUser(
+            string rootDir,
+            Repository repository)
         {
             // check if the repo folder exists
             // already done organisation pre-loop
@@ -147,7 +155,9 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
             await CloneRepository(repository, targetDirectory);
         }
 
-        private async Task CloneRepository(Repository repository, string targetDirectory)
+        private async Task CloneRepository(
+            [NotNull]Repository repository,
+            [NotNull]string targetDirectory)
         {
             if (this._directorySystem.Exists(targetDirectory))
             {
@@ -164,7 +174,7 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
                 }
             }
 
-            LibGit2Sharp.Repository.Clone(repository.CloneUrl, targetDirectory);
+            await this._cloneAction(repository, targetDirectory, this._logger);
         }
 
         private static async Task FetchListAndLoopIfNotEmptyAsync<TItem>(
