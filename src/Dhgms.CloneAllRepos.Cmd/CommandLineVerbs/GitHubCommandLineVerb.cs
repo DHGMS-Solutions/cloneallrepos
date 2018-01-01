@@ -9,10 +9,10 @@ using MediatR;
 
 namespace Dhgms.CloneAllRepos.Cmd.CommandLineVerbs
 {
-    [Verb("github")]
+    [Verb("github", HelpText = "Clones a github account")]
     public sealed class GitHubCommandLineVerb : BaseCommandLineVerb, ICloneGitHubJobSettings
     {
-        [Option('a', "apiKey", Required = true, HelpText = "The Github API Key to be used.")]
+        [Option('a', "apikey", Required = true, HelpText = "The Github API Key to be used.")]
         public string ApiKey { get; set; }
     }
 }

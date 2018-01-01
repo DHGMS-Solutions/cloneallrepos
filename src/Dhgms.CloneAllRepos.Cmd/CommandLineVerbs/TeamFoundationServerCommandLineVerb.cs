@@ -8,7 +8,7 @@ using Dhgms.CloneAllRepos.Cmd.Settings;
 
 namespace Dhgms.CloneAllRepos.Cmd.CommandLineVerbs
 {
-    [Verb("tfs")]
+    [Verb("tfs", HelpText = "Clones a TFS account")]
     public sealed class TeamFoundationServerCommandLineVerb : BaseCommandLineVerb, ICloneTeamFoundationServerJobSettings
     {
     }

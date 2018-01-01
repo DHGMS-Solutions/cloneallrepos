@@ -205,6 +205,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CommandLineArgumentsTest.cs" />
+    <Compile Include="CommandLineVerbs\BitBucketCommandLineVerbTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
