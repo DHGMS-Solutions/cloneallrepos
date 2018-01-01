@@ -18,6 +18,8 @@ namespace Dhgms.CloneAllRepos.UnitTests.CommandLineVerbs
                 new []
                 {
                     "bitbucket",
+                    "--apikey testapikey",
+                    "--rootdir c:\\git\\bitbucket",
                 },
                 new BitBucketCommandLineVerb
                 {
