@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dhgms.CloneAllRepos.UnitTests", "Dhgms.CloneAllRepos.UnitTests\Dhgms.CloneAllRepos.UnitTests.csproj", "{6BAD561E-8AE2-4761-ADF4-4FB2CA6A6D64}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dhgms.CloneAllRepos.Cmd", "Dhgms.CloneAllRepos.Cmd\Dhgms.CloneAllRepos.Cmd.csproj", "{4FFE9666-D7E4-4466-9B69-B3C5FB2B5371}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dhgms.CloneAllRepos.StoryTeller.Cmd", "Dhgms.CloneAllRepos.StoryTeller.Cmd\Dhgms.CloneAllRepos.StoryTeller.Cmd.csproj", "{52B6A280-3E9D-4ACF-BC76-E823090AFBCE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{4FFE9666-D7E4-4466-9B69-B3C5FB2B5371}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FFE9666-D7E4-4466-9B69-B3C5FB2B5371}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FFE9666-D7E4-4466-9B69-B3C5FB2B5371}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52B6A280-3E9D-4ACF-BC76-E823090AFBCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52B6A280-3E9D-4ACF-BC76-E823090AFBCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52B6A280-3E9D-4ACF-BC76-E823090AFBCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52B6A280-3E9D-4ACF-BC76-E823090AFBCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10E53DB0-A240-4637-85C8-B9C2D4BDB8C8}
 	EndGlobalSection
 EndGlobal
