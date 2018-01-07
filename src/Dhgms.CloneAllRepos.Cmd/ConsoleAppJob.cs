@@ -20,13 +20,12 @@ namespace Dhgms.CloneAllRepos.Cmd
         ICloneGitHubJobSettings,
         TeamFoundationServerCommandLineVerb,
         CloneFromTeamFoundationServerRequestHandler,
-        ICloneTeamFoundationServerJobSettings>
+        ICloneTeamFoundationServerJobSettings,
+        ConsoleAppJob>
     {
-        private readonly LoggerFactory _loggerFactory;
-
         public ConsoleAppJob(LoggerFactory loggerFactory)
+            : base(loggerFactory)
         {
-            this._loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         protected override CloneFromBitBucketRequestHandler GetT1Job(ICloneBitBucketJobSettings opts)
@@ -38,12 +37,10 @@ namespace Dhgms.CloneAllRepos.Cmd
         {
             var directory = new DirectoryWrap();
             var pathSystem = new PathWrap();
-            var logFactory = new NullLoggerFactory();
-            var logger = logFactory.CreateLogger<CloneFromGithubRequestHandler>();
             var cloneAction = opts.WhatIf
                 ? (Func<Repository, string, ILogger, Task>)this.SimulateCloneAsync
                 : this.DoActualCloneAsync;
-            return new CloneFromGithubRequestHandler(logger, directory, pathSystem, cloneAction);
+            return new CloneFromGithubRequestHandler(this.Logger, directory, pathSystem, cloneAction);
         }
 
         protected override CloneFromTeamFoundationServerRequestHandler GetT3Job(ICloneTeamFoundationServerJobSettings opts)
