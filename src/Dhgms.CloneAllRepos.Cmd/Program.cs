@@ -34,11 +34,12 @@ namespace Dhgms.CloneAllRepos.Cmd
             var fileTarget = new FileTarget();
             config.AddTarget("file", fileTarget);
 
-            consoleTarget.Layout = @"${date:format=HH\:mm\:ss} ${logger} ${message}";
+            const string defaultLayout = @"${date:format=HH\:mm\:ss} ${logger} ${message}";
+            consoleTarget.Layout = defaultLayout;
             var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
             fileTarget.FileName = $"{localAppDataPath}/dhgms solutions/cloneallrepos.cmd/nlogfile.txt";
-            fileTarget.Layout = "${message}";
+            fileTarget.Layout = defaultLayout;
 
             var consoleLogLevel = Debugger.IsAttached ? NLog.LogLevel.Debug : NLog.LogLevel.Info;
             var rule1 = new LoggingRule("*", consoleLogLevel, consoleTarget);
