@@ -14,21 +14,16 @@ namespace Dhgms.CloneAllRepos.Cmd
     using Dhgms.CloneAllRepos.Cmd.Requests;
     using MediatR;
 
-    public abstract class BaseVerbBasedConsoleAppJob<T1Verb, T1Job, T1Settings, T2Verb, T2Job, T2Settings, T3Verb, T3Job, T3Settings, TInheritingType> : IRequestHandler<StringArrayRequest<int>, int>
-        where T1Job : IRequestHandler<T1Settings>
+    public abstract class BaseVerbBasedConsoleAppJob<T1Verb, T1Settings, T2Verb, T2Settings, T3Verb, T3Settings, TInheritingType> : IRequestHandler<StringArrayRequest<int>, int>
         where T1Verb : T1Settings
         where T1Settings : class, IRequest
-        where T2Job : IRequestHandler<T2Settings>
         where T2Verb : T2Settings
         where T2Settings : class, IRequest
-        where T3Job : IRequestHandler<T3Settings>
         where T3Verb : T3Settings
         where T3Settings : class, IRequest
-        where TInheritingType : BaseVerbBasedConsoleAppJob<T1Verb, T1Job, T1Settings, T2Verb, T2Job, T2Settings, T3Verb, T3Job, T3Settings, TInheritingType>
+        where TInheritingType : BaseVerbBasedConsoleAppJob<T1Verb, T1Settings, T2Verb, T2Settings, T3Verb, T3Settings, TInheritingType>
     {
         private readonly LoggerFactory _loggerFactory;
-
-        protected ILogger Logger { get; }
 
         protected BaseVerbBasedConsoleAppJob(LoggerFactory loggerFactory)
         {
@@ -36,9 +31,11 @@ namespace Dhgms.CloneAllRepos.Cmd
             this.Logger = this._loggerFactory.CreateLogger<TInheritingType>();
         }
 
+        protected ILogger Logger { get; }
+
         public async Task<int> Handle(string[] args)
         {
-            this.Logger.LogInformation("Starting Job with Console Command Line Args", args);
+            this.Logger.LogInformation($"Starting Job with Console Command Line: {Environment.CommandLine}");
             var stringArrayRequest = new StringArrayRequest<int>(args);
             var result = await this.Handle(stringArrayRequest, CancellationToken.None);
             this.Logger.LogInformation($"Finished Job. Result {result}");
@@ -49,17 +46,17 @@ namespace Dhgms.CloneAllRepos.Cmd
         {
             return await Task.FromResult(Parser.Default.ParseArguments<T1Verb, T2Verb, T3Verb>(request.Data)
                 .MapResult(
-                    (T1Verb opts) => this.RunJob<T1Job, T1Settings>(this.GetT1Job, opts, 2, cancellationToken),
-                    (T2Verb opts) => this.RunJob<T2Job, T2Settings>(this.GetT2Job, opts, 3, cancellationToken),
-                    (T3Verb opts) => this.RunJob<T3Job, T3Settings>(this.GetT3Job, opts, 4, cancellationToken),
+                    (T1Verb opts) => this.RunJob<IRequestHandler<T1Settings>, T1Settings>(this.GetT1Job, opts, 2, cancellationToken),
+                    (T2Verb opts) => this.RunJob<IRequestHandler<T2Settings>, T2Settings>(this.GetT2Job, opts, 3, cancellationToken),
+                    (T3Verb opts) => this.RunJob<IRequestHandler<T3Settings>, T3Settings>(this.GetT3Job, opts, 4, cancellationToken),
                     this.OnCommandLineArgumentErrors));
         }
 
-        protected abstract T1Job GetT1Job(T1Settings settings);
+        protected abstract IRequestHandler<T1Settings> GetT1Job(T1Settings settings);
 
-        protected abstract T2Job GetT2Job(T2Settings settings);
+        protected abstract IRequestHandler<T2Settings> GetT2Job(T2Settings settings);
 
-        protected abstract T3Job GetT3Job(T3Settings settings);
+        protected abstract IRequestHandler<T3Settings> GetT3Job(T3Settings settings);
 
         private int OnCommandLineArgumentErrors(IEnumerable<Error> arg)
         {

@@ -5,6 +5,7 @@ using Dhgms.CloneAllRepos.Cmd.RequestHandlers;
 using Dhgms.CloneAllRepos.Cmd.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MediatR;
 using Octokit;
 
 namespace Dhgms.CloneAllRepos.Cmd
@@ -13,13 +14,10 @@ namespace Dhgms.CloneAllRepos.Cmd
 
     public sealed class ConsoleAppJob : BaseVerbBasedConsoleAppJob<
         BitBucketCommandLineVerb,
-        CloneFromBitBucketRequestHandler,
         ICloneBitBucketJobSettings,
         GitHubCommandLineVerb,
-        CloneFromGithubRequestHandler,
         ICloneGitHubJobSettings,
         TeamFoundationServerCommandLineVerb,
-        CloneFromTeamFoundationServerRequestHandler,
         ICloneTeamFoundationServerJobSettings,
         ConsoleAppJob>
     {
@@ -28,12 +26,12 @@ namespace Dhgms.CloneAllRepos.Cmd
         {
         }
 
-        protected override CloneFromBitBucketRequestHandler GetT1Job(ICloneBitBucketJobSettings opts)
+        protected override IRequestHandler<ICloneBitBucketJobSettings> GetT1Job(ICloneBitBucketJobSettings opts)
         {
             throw new System.NotImplementedException();
         }
 
-        protected override CloneFromGithubRequestHandler GetT2Job(ICloneGitHubJobSettings opts)
+        protected override IRequestHandler<ICloneGitHubJobSettings> GetT2Job(ICloneGitHubJobSettings opts)
         {
             var directory = new DirectoryWrap();
             var pathSystem = new PathWrap();
@@ -43,7 +41,7 @@ namespace Dhgms.CloneAllRepos.Cmd
             return new CloneFromGithubRequestHandler(this.Logger, directory, pathSystem, cloneAction);
         }
 
-        protected override CloneFromTeamFoundationServerRequestHandler GetT3Job(ICloneTeamFoundationServerJobSettings opts)
+        protected override IRequestHandler<ICloneTeamFoundationServerJobSettings> GetT3Job(ICloneTeamFoundationServerJobSettings opts)
         {
             throw new System.NotImplementedException();
         }
