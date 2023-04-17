@@ -1,19 +1,88 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using SystemWrapper.IO;
-using Microsoft.Extensions.Logging;
-using Nito.AsyncEx.Synchronous;
-using NLog.Config;
-using NLog.Extensions.Logging;
-using NLog.Targets;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
+
+    // https://docs.microsoft.com/en-us/dotnet/standard/commandline/get-started-tutorial
+    public sealed class ConsoleResultTracker
+    {
+        public int ResultCode { get; set; }
+    }
+
+    /// <summary>
+    /// Application Entry point.
+    /// </summary>
+    public static class Program
+    {
+        /// <summary>
+        /// Application Entry point.
+        /// </summary>
+        /// <param name="args">Command line arguments from the operating system.</param>
+        /// <returns>Status code indicating success or failure to the operating system.</returns>
+        public static Task<int> Main(string[] args)
+        {
+            return RunConsoleApp(args);
+        }
+
+        private static async Task<int> RunConsoleApp(string[] args)
+        {
+            try
+            {
+                var resultTracker = new ConsoleResultTracker();
+
+                var builder = GetHostBuilder(
+                    args,
+                    resultTracker);
+
+                await builder.RunConsoleAsync()
+                    .ConfigureAwait(false);
+
+                return resultTracker.ResultCode;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+
+                return e.HResult != 0 ? e.HResult : -1;
+            }
+#pragma warning restore CA1031 // Do not catch general exception types
+        }
+
+        private static IHostBuilder GetHostBuilder(string[] args, ConsoleResultTracker consoleResultTracker)
+        {
+            var consoleApplicationInitialization = new ConsoleApplicationInitialization();
+            var builder = new HostBuilder()
+                .ConfigureAppConfiguration((hostBuilder, config) =>
+                {
+                    consoleApplicationInitialization.DoApplicationConfiguration(hostBuilder, config);
+                })
+                .ConfigureLogging((hostingContext, logging) =>
+                {
+                    consoleApplicationInitialization.ConfigureLogging(
+                        hostingContext,
+                        logging);
+                })
+                .ConfigureServices(serviceCollection =>
+                {
+                    serviceCollection.AddSingleton(consoleResultTracker);
+
+                    consoleApplicationInitialization.DoConfigureServices(
+                        serviceCollection,
+                        args);
+                });
+
+            return builder;
+        }
+    }
+
+    /*
     internal static class Program
     {
-        public static int Main(string[] args)
+        public static Task<int> Main(string[] args)
         {
             using (var loggerFactory = new LoggerFactory())
             {
@@ -21,7 +90,7 @@ namespace Dhgms.CloneAllRepos.Cmd
 
                 // todo : update to dotnetcore and use an async main
                 var consoleAppJob = new ConsoleAppJob(loggerFactory);
-                return consoleAppJob.Handle(args).Result;
+                return consoleAppJob.Handle(args);
             }
         }
 
@@ -51,4 +120,5 @@ namespace Dhgms.CloneAllRepos.Cmd
             loggerFactory.ConfigureNLog(config);
         }
     }
+    */
 }

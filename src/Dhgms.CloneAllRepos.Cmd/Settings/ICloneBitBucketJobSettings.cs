@@ -2,6 +2,8 @@
 {
     public interface ICloneBitBucketJobSettings : IJobSettings
     {
-        
+        string BaseUrl { get; }
+
+        string Base64AuthToken { get; }
     }
 }

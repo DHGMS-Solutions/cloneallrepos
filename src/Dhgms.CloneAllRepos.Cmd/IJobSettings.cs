@@ -6,7 +6,7 @@ namespace Dhgms.CloneAllRepos.Cmd
     {
         //string GitHubApiKey { get; }
 
-        string RootDir { get; }
+        string RootDirectory { get; }
 
         bool WhatIf { get; }
     }

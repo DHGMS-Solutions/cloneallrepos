@@ -1,20 +1,20 @@
-﻿using Foundatio.AsyncEx.Synchronous;
+﻿using System;
+using System.CommandLine;
+using System.Threading;
+using System.Threading.Tasks;
+using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
+using Dhgms.CloneAllRepos.Cmd.RequestHandlers;
+using Dhgms.CloneAllRepos.Cmd.Requests;
+using MediatR;
+using Foundatio.AsyncEx.Synchronous;
 using Microsoft.Extensions.Logging;
+using Octokit;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using CommandLine;
-    using Dhgms.CloneAllRepos.Cmd.CommandLineVerbs;
-    using Dhgms.CloneAllRepos.Cmd.Requests;
-    using MediatR;
 
-    public abstract class BaseVerbBasedConsoleAppJob<T1Verb, T1Settings, T2Verb, T2Settings, T3Verb, T3Settings, TInheritingType> : IRequestHandler<StringArrayRequest<int>, int>
+    public abstract class BaseVerbBasedConsoleAppJob<T1Verb, T1Settings, T2Verb, T2Settings, T3Verb, T3Settings, TInheritingType>
+        : IRequestHandler<StringArrayRequest<int>, int>
         where T1Verb : T1Settings
         where T1Settings : class, IRequest
         where T2Verb : T2Settings
@@ -23,47 +23,82 @@ namespace Dhgms.CloneAllRepos.Cmd
         where T3Settings : class, IRequest
         where TInheritingType : BaseVerbBasedConsoleAppJob<T1Verb, T1Settings, T2Verb, T2Settings, T3Verb, T3Settings, TInheritingType>
     {
-        private readonly LoggerFactory _loggerFactory;
-
         protected BaseVerbBasedConsoleAppJob(LoggerFactory loggerFactory)
         {
-            this._loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-            this.Logger = this._loggerFactory.CreateLogger<TInheritingType>();
+            this.LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            this.Logger = this.LoggerFactory.CreateLogger<TInheritingType>();
         }
+
+        protected LoggerFactory LoggerFactory { get; }
 
         protected ILogger Logger { get; }
 
-        public async Task<int> Handle(string[] args)
-        {
-            this.Logger.LogInformation($"Starting Job with Console Command Line: {Environment.CommandLine}");
-            var stringArrayRequest = new StringArrayRequest<int>(args);
-            var result = await this.Handle(stringArrayRequest, CancellationToken.None);
-            this.Logger.LogInformation($"Finished Job. Result {result}");
-            return result;
-        }
-
         public async Task<int> Handle(StringArrayRequest<int> request, CancellationToken cancellationToken)
         {
-            return await Task.FromResult(Parser.Default.ParseArguments<T1Verb, T2Verb, T3Verb>(request.Data)
-                .MapResult(
-                    (T1Verb opts) => this.RunJob<IRequestHandler<T1Settings>, T1Settings>(this.GetT1Job, opts, 2, cancellationToken),
-                    (T2Verb opts) => this.RunJob<IRequestHandler<T2Settings>, T2Settings>(this.GetT2Job, opts, 3, cancellationToken),
-                    (T3Verb opts) => this.RunJob<IRequestHandler<T3Settings>, T3Settings>(this.GetT3Job, opts, 4, cancellationToken),
-                    this.OnCommandLineArgumentErrors));
+            this.Logger.LogInformation($"Starting Job with Console Command Line: {Environment.CommandLine}");
+
+            var apiKeyOption = new Option<string>("apiKey");
+            var baseUrlOption = new Option<string>("baseUrlOption");
+            var base64AuthTokenOption = new Option<string>("base64AuthTokenOption");
+            var rootDirectory = new Option<string>("rootDir");
+            var whatIf = new Option<bool>("whatIf");
+
+            var bitbucketCommand = new Command("bitbucket", "Clones a Bitbucket Account")
+            {
+                baseUrlOption,
+                base64AuthTokenOption,
+                rootDirectory,
+                whatIf
+            };
+
+            bitbucketCommand.SetHandler(
+                async (BitBucketCommandLineVerb verb) =>
+                {
+                    await new CloneFromBitBucketRequestHandler(
+                        this.LoggerFactory.CreateLogger<CloneFromBitBucketRequestHandler>(),
+                        CloneAction).Handle(verb, CancellationToken.None);
+                },
+                new BitBucketCommandLineVerbBinder(
+                    baseUrlOption,
+                    base64AuthTokenOption,
+                    rootDirectory,
+                    whatIf));
+
+            var githubCommand = new Command("github", "Clones a Github Account")
+            {
+                apiKeyOption,
+                rootDirectory,
+                whatIf
+            };
+
+            /*
+            githubCommand.SetHandler(
+                (GitHubCommandLineVerb verb) => { },
+                new GithubCommandLineVerbBinder(
+                    apiKeyOption,
+                    rootDirectory,
+                    whatIf));
+            */
+
+            var rootCommand = new RootCommand("Source Control Cloning Tool");
+            rootCommand.AddCommand(bitbucketCommand);
+            rootCommand.AddCommand(githubCommand);
+
+            return await rootCommand.InvokeAsync(request.Data)
+                .ConfigureAwait(false);
         }
+
+        private Task CloneAction(Repository arg1, string arg2, ILogger arg3)
+        {
+            throw new NotImplementedException();
+        }
+
 
         protected abstract IRequestHandler<T1Settings> GetT1Job(T1Settings settings);
 
         protected abstract IRequestHandler<T2Settings> GetT2Job(T2Settings settings);
 
         protected abstract IRequestHandler<T3Settings> GetT3Job(T3Settings settings);
-
-        private int OnCommandLineArgumentErrors(IEnumerable<Error> arg)
-        {
-            this.Logger.LogError("Problem parsing command line");
-
-            return 1;
-        }
 
         private int RunJob<TJob, TSettings>(
             Func<TSettings, TJob> getJob,

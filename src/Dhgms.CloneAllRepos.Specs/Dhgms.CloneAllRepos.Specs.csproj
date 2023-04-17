@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SpecFlow.xUnit" Version="2.2.1" />
-    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
+    <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>

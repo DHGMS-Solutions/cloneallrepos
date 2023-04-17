@@ -16,24 +16,17 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
     using Microsoft.Extensions.Logging;
     using Octokit;
     using Octokit.Internal;
-    using SystemInterface.IO;
 
     public sealed class CloneFromGithubRequestHandler : IRequestHandler<ICloneGitHubJobSettings>
     {
-        private readonly ILogger _logger;
-        private readonly IDirectory _directorySystem;
-        private readonly IPath _pathSystem;
+        private readonly ILogger<CloneFromGithubRequestHandler> _logger;
         private Func<Repository, string, ILogger, Task> _cloneAction;
 
         public CloneFromGithubRequestHandler(
-            ILogger logger,
-            IDirectory directorySystem,
-            IPath pathSystem,
+            ILogger<CloneFromGithubRequestHandler> logger,
             Func<Repository, string, ILogger, Task> cloneAction)
         {
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._directorySystem = directorySystem ?? throw new ArgumentNullException(nameof(directorySystem));
-            this._pathSystem = pathSystem ?? throw new ArgumentNullException(nameof(pathSystem));
             this._cloneAction = cloneAction ?? throw new ArgumentNullException(nameof(cloneAction));
         }
 
@@ -46,10 +39,10 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 
             var apiKey = jobSettings.ApiKey;
 
-            var rootDir = jobSettings.RootDir;
+            var rootDir = jobSettings.RootDirectory;
 
             // validate home directory
-            if (!this._directorySystem.Exists(rootDir))
+            if (!System.IO.Directory.Exists(rootDir))
             {
                 throw new DirectoryNotFoundException(rootDir);
             }
@@ -83,18 +76,18 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 
         private async Task EnsureStarFolderExists(string rootDir)
         {
-            var starsFolder = this._pathSystem.Combine(rootDir, "stars");
+            var starsFolder = Path.Combine(rootDir, "stars");
             this.EnsureDirectoryExists(starsFolder);
         }
 
         private void EnsureDirectoryExists(string path)
         {
-            if (this._directorySystem.Exists(path))
+            if (Directory.Exists(path))
             {
                 return;
             }
 
-            this._directorySystem.CreateDirectory(path);
+            Directory.CreateDirectory(path);
         }
 
         private async Task OnNoStarsForUser()
@@ -132,12 +125,12 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
                 return;
             }
 
-            var targetDirectory = this._pathSystem.Combine(rootDir, "stars", ownerName);
+            var targetDirectory = Path.Combine(rootDir, "stars", ownerName);
             this.EnsureDirectoryExists(targetDirectory);
 
             // check if the repo folder exists
             var repositoryName = repository.Name;
-            targetDirectory = this._pathSystem.Combine(targetDirectory, repositoryName);
+            targetDirectory = Path.Combine(targetDirectory, repositoryName);
 
             await CloneRepository(repository, targetDirectory);
         }
@@ -150,7 +143,7 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
             // already done organisation pre-loop
             var ownerName = repository.Owner.Name;
             var repositoryName = repository.Name;
-            var targetDirectory = this._pathSystem.Combine(rootDir, ownerName, repositoryName);
+            var targetDirectory = Path.Combine(rootDir, ownerName, repositoryName);
 
             await CloneRepository(repository, targetDirectory);
         }
@@ -159,14 +152,14 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
             [NotNull]Repository repository,
             [NotNull]string targetDirectory)
         {
-            if (this._directorySystem.Exists(targetDirectory))
+            if (Directory.Exists(targetDirectory))
             {
                 if (LibGit2Sharp.Repository.IsValid(targetDirectory))
                 {
                     return;
                 }
 
-                var filesInDirectory = this._directorySystem.EnumerateFiles(targetDirectory).Any();
+                var filesInDirectory = Directory.EnumerateFiles(targetDirectory).Any();
 
                 if (filesInDirectory)
                 {
@@ -237,7 +230,7 @@ namespace Dhgms.CloneAllRepos.Cmd.RequestHandlers
 
         private async Task<GitHubClient> GetGitHubClientWithApiKeyAsync([NotNull]string apiKey)
         {
-            return await TaskEx.FromResult(this.GetGitHubClientWithApiKey(apiKey));
+            return await Task.FromResult(this.GetGitHubClientWithApiKey(apiKey));
             //{
             //new Octokit.GitHubClient(productInformation, credentialStore)
             //});

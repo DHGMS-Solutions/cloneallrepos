@@ -10,8 +10,6 @@ using Octokit;
 
 namespace Dhgms.CloneAllRepos.Cmd
 {
-    using SystemWrapper.IO;
-
     public sealed class ConsoleAppJob : BaseVerbBasedConsoleAppJob<
         BitBucketCommandLineVerb,
         ICloneBitBucketJobSettings,
@@ -33,12 +31,10 @@ namespace Dhgms.CloneAllRepos.Cmd
 
         protected override IRequestHandler<ICloneGitHubJobSettings> GetT2Job(ICloneGitHubJobSettings opts)
         {
-            var directory = new DirectoryWrap();
-            var pathSystem = new PathWrap();
             var cloneAction = opts.WhatIf
                 ? (Func<Repository, string, ILogger, Task>)this.SimulateCloneAsync
                 : this.DoActualCloneAsync;
-            return new CloneFromGithubRequestHandler(this.Logger, directory, pathSystem, cloneAction);
+            return new CloneFromGithubRequestHandler(this.LoggerFactory.CreateLogger<CloneFromGithubRequestHandler>(), cloneAction);
         }
 
         protected override IRequestHandler<ICloneTeamFoundationServerJobSettings> GetT3Job(ICloneTeamFoundationServerJobSettings opts)
